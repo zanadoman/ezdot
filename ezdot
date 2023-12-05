@@ -9,7 +9,7 @@ function new()
         echo -e '<Project Sdk="Microsoft.NET.Sdk">\n\n\t<PropertyGroup>\n\t\t<OutputType>Exe</OutputType>\n\t\t<TargetFramework>net8.0</TargetFramework>\n\t\t<LangVersion>12</LangVersion>\n\t\t<ImplicitUsings>disable</ImplicitUsings>\n\t\t<Nullable>enable</Nullable>\n\t\t<AllowUnsafeBlocks>true</AllowUnsafeBlocks>\n\t</PropertyGroup>\n\n</Project>' > './'$1'/'$1'.csproj'
         echo "The project was created successfully."
     else
-        echo "Failed to create project."
+        echo "Failed to create the project."
     fi
 }
 
