@@ -2,29 +2,15 @@
 
 function new()
 {
-    dotnet new console --name $1 --use-program-main true --framework net7.0 --langVersion 11 > /dev/null 2>&1
+    dotnet new console --name $1 --use-program-main true --framework net8.0 --langVersion 12 1> /dev/null
     if [ $? == 0 ]
     then
+        echo -e 'using System;\nusing System.Runtime.InteropServices;\n\nnamespace '$1'\n{\n\tinternal unsafe class Program\n\t{\n\t\tstatic void Main(string[] args)\n\t\t{\n\t\t\tConsole.WriteLine("Hello World!");\n\t\t}\n\t}\n}' > './'$1'/Program.cs'
+        echo -e '<Project Sdk="Microsoft.NET.Sdk">\n\n\t<PropertyGroup>\n\t\t<OutputType>Exe</OutputType>\n\t\t<TargetFramework>net8.0</TargetFramework>\n\t\t<LangVersion>12</LangVersion>\n\t\t<ImplicitUsings>disable</ImplicitUsings>\n\t\t<Nullable>enable</Nullable>\n\t\t<AllowUnsafeBlocks>true</AllowUnsafeBlocks>\n\t</PropertyGroup>\n\n</Project>' > './'$1'/'$1'.csproj'
         echo "The project was created successfully."
     else
-        echo "Creating this project will overwrite a project with the same name."
-        read -n 1 -s -r -p $'Do you want it anyway? (y/n)' choice
-        case $choice in
-            y)
-                dotnet new console --name $1 --use-program-main true --framework net7.0 --langVersion 11 --force > /dev/null 2>&1
-                echo -e "\nThe project was created successfully."
-                ;;
-            *)
-                echo -e "\nProject creation cancelled."
-                exit 0
-                ;;
-        esac
+        echo "Failed to create project."
     fi
-
-    echo -e 'using System;\nusing System.Runtime.InteropServices;\n\nnamespace '$1'\n{\n\tinternal unsafe class Program\n\t{\n\t\tstatic void Main(string[] args)\n\t\t{\n\t\t\tConsole.WriteLine("Hello World!");\n\t\t}\n\t}\n}' > './'$1'/Program.cs'
-    echo -e '<Project Sdk="Microsoft.NET.Sdk">\n\n\t<PropertyGroup>\n\t\t<OutputType>Exe</OutputType>\n\t\t<TargetFramework>net7.0</TargetFramework>\n\t\t<LangVersion>11</LangVersion>\n\t\t<ImplicitUsings>disable</ImplicitUsings>\n\t\t<Nullable>enable</Nullable>\n\t\t<AllowUnsafeBlocks>true</AllowUnsafeBlocks>\n\t</PropertyGroup>\n\n</Project>' > './'$1'/'$1'.csproj'
-
-    cd ./$1
 }
 
 function debug()
@@ -36,23 +22,13 @@ function debug()
         echo
         case $choice in
             r)
-                ./bin/Debug/net7.0/$project 2> /dev/null
-                success=$?
-                if [ $success == 127 ] && [ -z $1 ]
-                then
-                    echo "Couldn't find a binary to run. Ensure a binary exists in $(pwd)/bin/Debug/net7.0/"
-                    exit 1
-                fi
-                if [ $success == 127 ]
-                then
-                    echo "First debug the project, then run the binary."
-                fi
+                ./bin/Debug/net8.0/$project
                 ;;
             b)
-                sudo dotnet run
+                dotnet run
                 ;;
             $'\e')
-                exit 0
+                break
                 ;;
         esac
     done
@@ -61,28 +37,37 @@ function debug()
 function help()
 {
     echo -e "\nUsage: ezdot [options]\n\nOptions:\n  -h|--help\tDisplay help.\n  -n|--new\tNew console app.\n  -d|--debug\tDebug console app.\n  --version\tDisplay .NET version.\n"
-    exit 0
 }
 
 if [ -z $1 ]
 then
     help
-elif [ $1 != "-n" ] && [ $1 != "--new" ] && [ ! -z $2 ]
-then
-    help
-elif [ $1 == "--version" ]
+    exit 1
+fi
+
+if [ $1 == "--version" ]
 then
     echo ".NET version: $(dotnet --version)"
-elif [ $1 == "-n" ] || [ $1 == "--new" ]
+    exit 0
+fi
+
+if [ $1 == "-n" ] || [ $1 == "--new" ]
 then
-    new $2
-elif [ $1 == "-d" ] || [ $1 == "--debug" ]
+    if [ ! -z $2 ]
+    then
+        new $2
+        exit 0
+    else
+        help
+        exit 1
+    fi
+fi
+
+if [ $1 == "-d" ] || [ $1 == "--debug" ]
 then
     debug
-elif [ $1 == "-nd" ]
-then
-    new $2
-    debug nd
-else
-    help
+    exit 0
 fi
+
+help
+exit 1
