@@ -25,7 +25,7 @@ function debug()
                 ./bin/Debug/net8.0/$project
                 ;;
             b)
-                dotnet run
+                sudo dotnet run
                 ;;
             $'\e')
                 break
